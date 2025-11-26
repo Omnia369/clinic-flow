@@ -30,6 +30,13 @@ Important:
 - POST /api/preview/command — stubbed preview generator (returns watermarked blocks)
 - POST /api/webhooks/paddle — verifies Paddle Classic webhooks via p_signature (RSA-SHA1). 200 if verified; 202 if missing key or unverifiable.
 - POST /api/webhooks/paypal — verifies PayPal webhooks via Verify Webhook Signature API. 200 if verified; 202 otherwise.
+- GET /api/admin/testhooks — returns captured webhook events (in-memory for local QA)
+
+## Admin surfaces
+- /admin — entry point
+- /admin/testhooks — QA surface to view captured events (refresh after sending tests)
+
+Note: Captured events are held in-memory for local development only and will reset on server restart. For production, wire a database and replace lib/capture.ts with persistent storage.
 
 ## Structure (high level)
 - app/ — Next.js App Router pages and API routes
