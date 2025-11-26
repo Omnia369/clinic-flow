@@ -19,15 +19,17 @@ Visit http://localhost:3000
 
 ## Environment
 
-Copy .env.example to .env and fill in values as needed. Safe to leave most blank during local dev.
+Copy .env.example to .env and fill in values as needed.
 
 Important:
-- Set PADDLE_PUBLIC_KEY to enable webhook signature verification for Paddle Classic.
+- Paddle: set PADDLE_PUBLIC_KEY to verify Classic webhooks.
+- PayPal: set PAYPAL_ENV ('sandbox' or 'live'), PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, and PAYPAL_WEBHOOK_ID to enable webhook verification.
 
 ## Notable Endpoints (scaffold)
 - GET /api/health — basic health check
 - POST /api/preview/command — stubbed preview generator (returns watermarked blocks)
-- POST /api/webhooks/paddle — verifies Paddle Classic webhooks via p_signature (RSA-SHA1). Responds 200 on success; 202 if missing key or unverifiable.
+- POST /api/webhooks/paddle — verifies Paddle Classic webhooks via p_signature (RSA-SHA1). 200 if verified; 202 if missing key or unverifiable.
+- POST /api/webhooks/paypal — verifies PayPal webhooks via Verify Webhook Signature API. 200 if verified; 202 otherwise.
 
 ## Structure (high level)
 - app/ — Next.js App Router pages and API routes
