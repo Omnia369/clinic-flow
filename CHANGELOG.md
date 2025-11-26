@@ -1,2 +1,3 @@
-- 2025-11-26: Fixed import path for Paddle webhook route; added Solana reference-lookup endpoint (/api/solana/verify) and @solana/web3.js dependency.
-- 2025-11-26: Added Wise API helpers (profiles, quotes, recipients, transfers, funding) with sandbox default.
+- 2025-11-26: Added DB schema for access_keys and preview_usage.
+- 2025-11-26: Added lib/auth.ts with helpers for key generation, email hashing, and DB operations.
+- 2025-11-26: Added admin API endpoints for key management (/api/admin/keys) with bearer token auth.
