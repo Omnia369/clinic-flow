@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
+import { verifyPaddleSignature, coercePublicKeyFromEnv } from '../../../lib/paddle';
 
 function formDataToObject(fd: FormData) {
-  const obj: Record<string, string> = {};
+  const obj: Record<string, any> = {};
   fd.forEach((v, k) => { obj[k] = String(v); });
   return obj;
 }
 
 export async function POST(req: Request) {
   const ct = req.headers.get('content-type') || '';
-  let body: any = {};
+  let body: Record<string, any> = {};
 
   try {
     if (ct.includes('application/x-www-form-urlencoded')) {
@@ -18,25 +19,27 @@ export async function POST(req: Request) {
       body = await req.json();
     } else {
       const text = await req.text();
-      body = { _raw: text };
+      body = { _raw: text } as any;
     }
   } catch (e) {
     return NextResponse.json({ ok: false, error: 'Unable to parse body' }, { status: 400 });
   }
 
-  // TODO: Implement RSA-SHA1 verification of p_signature using PADDLE_PUBLIC_KEY.
-  // For now, we accept and return 202 to indicate async processing.
   const alert_name = body?.alert_name || null;
+  const publicKey = coercePublicKeyFromEnv(process.env.PADDLE_PUBLIC_KEY);
+  const verified = publicKey ? verifyPaddleSignature(body, publicKey) : false;
+
+  // Respond 200 on success; 202 when not verified or key missing (so provider can retry while we fix config)
+  const status = verified ? 200 : 202;
 
   return NextResponse.json(
     {
       ok: true,
-      received: true,
       provider: 'paddle',
       alert_name,
-      verified: false,
-      note: 'Verification pending implementation'
+      verified,
+      note: verified ? 'Signature verified' : (!publicKey ? 'Missing PADDLE_PUBLIC_KEY' : 'Signature not verified')
     },
-    { status: 202 }
+    { status }
   );
 }
