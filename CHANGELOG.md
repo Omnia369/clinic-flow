@@ -1,1 +1,2 @@
-- 2025-11-26: Added Admin Keys Manager UI at /admin/keys to list, issue, and revoke keys.
+- 2025-11-26: Added Wise payout API endpoint (/api/wise/payout) and getRecipientByEmail helper.
+- 2025-11-26: Added Solana payment creation endpoint (/api/solana/create-payment) and @solana/pay dependency.
