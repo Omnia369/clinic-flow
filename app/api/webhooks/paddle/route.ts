@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyPaddleSignature, coercePublicKeyFromEnv } from '../../../lib/paddle';
+import { verifyPaddleSignature, coercePublicKeyFromEnv } from '../../../../lib/paddle';
 import { addCapturedEvent } from '../../../../lib/capture';
 
 function formDataToObject(fd: FormData) {
