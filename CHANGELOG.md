@@ -3,5 +3,4 @@
 ## [Unreleased]
 
 ### Added
-- Admin-only API endpoint for creating Wise payouts at `pages/api/admin/wise-payout.ts`
-
+- New API endpoint at `pages/api/solana-pay.ts` for generating Solana Pay URLs.
