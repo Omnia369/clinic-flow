@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyPaddleSignature, coercePublicKeyFromEnv } from '../../../lib/paddle';
+import { addCapturedEvent } from '../../../../lib/capture';
 
 function formDataToObject(fd: FormData) {
   const obj: Record<string, any> = {};
@@ -28,9 +29,21 @@ export async function POST(req: Request) {
   const alert_name = body?.alert_name || null;
   const publicKey = coercePublicKeyFromEnv(process.env.PADDLE_PUBLIC_KEY);
   const verified = publicKey ? verifyPaddleSignature(body, publicKey) : false;
-
-  // Respond 200 on success; 202 when not verified or key missing (so provider can retry while we fix config)
   const status = verified ? 200 : 202;
+
+  // Capture for admin QA (in-memory; replace with DB for production)
+  try {
+    const headersObj = Object.fromEntries(req.headers.entries());
+    addCapturedEvent({
+      provider: 'paddle',
+      headers: headersObj,
+      parsed_body: body,
+      alert_name,
+      verify_result: verified,
+      note: verified ? 'Signature verified' : (!publicKey ? 'Missing PADDLE_PUBLIC_KEY' : 'Signature not verified'),
+      last_status: status,
+    });
+  } catch {}
 
   return NextResponse.json(
     {
