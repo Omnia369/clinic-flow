@@ -1,1 +1,1 @@
-- 2025-11-26: Admin scaffold (/admin, /admin/testhooks), stub preview and Paddle webhook endpoints.
+- 2025-11-26: Implemented Paddle Classic webhook signature verification (RSA-SHA1, p_signature) and wired endpoint.
