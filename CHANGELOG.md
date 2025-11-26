@@ -1,3 +1,1 @@
-- 2025-11-26: Added DB schema for access_keys and preview_usage.
-- 2025-11-26: Added lib/auth.ts with helpers for key generation, email hashing, and DB operations.
-- 2025-11-26: Added admin API endpoints for key management (/api/admin/keys) with bearer token auth.
+- 2025-11-26: Added Admin Keys Manager UI at /admin/keys to list, issue, and revoke keys.
