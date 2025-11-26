@@ -1,2 +1,6 @@
-- 2025-11-26: Added Wise payout API endpoint (/api/wise/payout) and getRecipientByEmail helper.
-- 2025-11-26: Added Solana payment creation endpoint (/api/solana/create-payment) and @solana/pay dependency.
+# Changelog
+
+## [Unreleased]
+
+- Added introduction file for toolkits at content/toolkits/index.md
+- Added placeholder files for 12 toolkit categories: Urgent, Caring, Growth, Spotlight, Deep, Balanced, Gentle, Steady, Precise, Conversational, Enterprise, Innovative
