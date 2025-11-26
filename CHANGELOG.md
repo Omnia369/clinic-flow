@@ -2,7 +2,6 @@
 
 ## [Unreleased]
 
-## Added
-- Added docs/OPERATIONS.md with initial operator guidance.
-- Added Paddle webhook handler with signature verification and idempotent DB persistence at `pages/api/webhooks/paddle.ts`.
-- Added PayPal webhook handler with signature verification and idempotent DB persistence at `pages/api/webhooks/paypal.ts`.
+### Added
+- Admin-only API endpoint for creating Wise payouts at `pages/api/admin/wise-payout.ts`
+
