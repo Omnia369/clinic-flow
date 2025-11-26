@@ -13,7 +13,9 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "php-serialize": "1.2.6",
-    "@solana/web3.js": "^1.95.3"
+    "@solana/web3.js": "^1.95.3",
+    "@solana/pay": "^0.2.5",
+    "bignumber.js": "^9.1.2"
   },
   "devDependencies": {
     "eslint": "8.48.0",
