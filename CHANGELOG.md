@@ -1,1 +1,1 @@
-- 2025-11-26: Implemented Paddle Classic webhook signature verification (RSA-SHA1, p_signature) and wired endpoint.
+- 2025-11-26: Added in-memory captured webhooks store, /api/admin/testhooks endpoint, and wired UI in /admin/testhooks to list events.
