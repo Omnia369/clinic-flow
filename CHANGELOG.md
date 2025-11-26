@@ -1,1 +1,2 @@
-- 2025-11-26: Added in-memory captured webhooks store, /api/admin/testhooks endpoint, and wired UI in /admin/testhooks to list events.
+- 2025-11-26: Fixed import path for Paddle webhook route; added Solana reference-lookup endpoint (/api/solana/verify) and @solana/web3.js dependency.
+- 2025-11-26: Added Wise API helpers (profiles, quotes, recipients, transfers, funding) with sandbox default.
