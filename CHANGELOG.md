@@ -1,7 +1,2 @@
-# Changelog
-
-## [Unreleased]
-
-### Added
-- New page: Solana Pay for generating Solana Pay QR codes and payment requests.
-
+### Changed
+- Enhanced the `/admin/testhooks` page with "Replay" and "Inspect" functionality. Added a new API endpoint (`/api/admin/testhooks/replay`) to re-process captured webhooks for easier QA and debugging.
