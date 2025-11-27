@@ -1,162 +1,125 @@
-import React, { useState } from "react";
+import { useState } from 'react';
 
-const WisePayoutAdmin = () => {
-  const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("");
-  const [recipientId, setRecipientId] = useState("");
-  const [reference, setReference] = useState("");
-  const [message, setMessage] = useState(null);
-  const [error, setError] = useState(null);
+const WisePayoutPage = () => {
+  const [formData, setFormData] = useState({
+    amount: '',
+    currency: 'USD',
+    recipientName: '',
+    accountNumber: '',
+    // Add other necessary fields for different payout methods
+  });
+  const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePayout = async () => {
     setLoading(true);
-    setMessage(null);
-    setError(null);
+    setError('');
+    setStatus('Initiating payout...');
 
     try {
-      const token = localStorage.getItem("adminBearerToken");
-      if (!token) {
-        setError("Admin token not found. Please login.");
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch("/api/admin/wise-payout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ amount, currency, recipientId, reference }),
+      const response = await fetch('/api/admin/wise-payout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setMessage("Payout successful.");
-        setAmount("");
-        setCurrency("");
-        setRecipientId("");
-        setReference("");
+        setStatus(`Payout initiated successfully. Transfer ID: ${data.transferId}`);
       } else {
-        setError(data.error || "An error occurred.");
+        throw new Error(data.error || 'Failed to initiate payout.');
       }
     } catch (err) {
-      setError("An error occurred.");
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+      setError(errorMessage);
+      setStatus('Error initiating payout.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
-    <div className="admin-container">
-      <h1>Wise Payout</h1>
-      <form onSubmit={handleSubmit} className="admin-form">
-        <label>
-          Amount
-          <input
-            type="number"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-            min="0"
-            step="0.01"
-          />
-        </label>
-        <label>
-          Currency
-          <input
-            type="text"
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          Recipient ID
-          <input
-            type="text"
-            value={recipientId}
-            onChange={(e) => setRecipientId(e.target.value)}
-            required
-          />
-        </label>
-        <label>
-          Reference
-          <input
-            type="text"
-            value={reference}
-            onChange={(e) => setReference(e.target.value)}
-          />
-        </label>
-        <button type="submit" disabled={loading}>
-          {loading ? "Processing..." : "Submit"}
-        </button>
-      </form>
-      {message && <p className="success-message">{message}</p>}
-      {error && <p className="error-message">{error}</p>}
-      <style jsx>{`
-        .admin-container {
-          max-width: 600px;
-          margin: 2rem auto;
-          padding: 1rem;
-          background: #fff;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          font-family: Arial, sans-serif;
-        }
-        h1 {
-          text-align: center;
-          margin-bottom: 1.5rem;
-        }
-        .admin-form {
-          display: flex;
-          flex-direction: column;
-        }
-        label {
-          margin-bottom: 1rem;
-          font-weight: bold;
-        }
-        input {
-          width: 100%;
-          padding: 0.5rem;
-          margin-top: 0.25rem;
-          border: 1px solid #ccc;
-          border-radius: 4px;
-          font-size: 1rem;
-        }
-        button {
-          padding: 0.75rem;
-          background-color: #0070f3;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          font-size: 1rem;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-        button:disabled {
-          background-color: #999;
-          cursor: not-allowed;
-        }
-        button:hover:not(:disabled) {
-          background-color: #005bb5;
-        }
-        .success-message {
-          color: green;
-          margin-top: 1rem;
-          text-align: center;
-        }
-        .error-message {
-          color: red;
-          margin-top: 1rem;
-          text-align: center;
-        }
-      `}</style>
+    <div className='min-h-screen bg-gray-100 p-8'>
+      <div className='max-w-2xl mx-auto bg-white p-6 rounded-lg shadow'>
+        <h1 className='text-2xl font-bold text-gray-800 mb-6'>Wise Payout</h1>
+        <div className='space-y-4'>
+          <div>
+            <label htmlFor='recipientName' className='block text-sm font-medium text-gray-700'>
+              Recipient Name
+            </label>
+            <input
+              type='text'
+              name='recipientName'
+              id='recipientName'
+              value={formData.recipientName}
+              onChange={handleInputChange}
+              className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm'
+            />
+          </div>
+          <div>
+            <label htmlFor='accountNumber' className='block text-sm font-medium text-gray-700'>
+              Account Number
+            </label>
+            <input
+              type='text'
+              name='accountNumber'
+              id='accountNumber'
+              value={formData.accountNumber}
+              onChange={handleInputChange}
+              className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm'
+            />
+          </div>
+          <div className='grid grid-cols-2 gap-4'>
+            <div>
+              <label htmlFor='amount' className='block text-sm font-medium text-gray-700'>
+                Amount
+              </label>
+              <input
+                type='number'
+                name='amount'
+                id='amount'
+                value={formData.amount}
+                onChange={handleInputChange}
+                className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm'
+              />
+            </div>
+            <div>
+              <label htmlFor='currency' className='block text-sm font-medium text-gray-700'>
+                Currency
+              </label>
+              <select
+                name='currency'
+                id='currency'
+                value={formData.currency}
+                onChange={handleInputChange}
+                className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm'
+              >
+                <option>USD</option>
+                <option>EUR</option>
+                <option>GBP</option>
+              </select>
+            </div>
+          </div>
+          <button
+            onClick={handlePayout}
+            disabled={loading}
+            className='w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400'
+          >
+            {loading ? 'Processing...' : 'Initiate Payout'}
+          </button>
+        </div>
+        {status && <p className='mt-4 text-sm text-center text-gray-600'>{status}</p>}
+        {error && <p className='mt-4 text-sm text-center text-red-600'>{error}</p>}
+      </div>
     </div>
   );
 };
 
-export default WisePayoutAdmin;
+export default WisePayoutPage;
