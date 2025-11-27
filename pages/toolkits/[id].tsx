@@ -2,6 +2,7 @@ import { GetStaticProps, GetStaticPaths } from 'next';
 import Head from 'next/head';
 import { getAllToolkitIds, getToolkitData } from '../../lib/toolkits';
 import { ParsedUrlQuery } from 'querystring';
+import Layout from '../../components/layout';
 
 interface IParams extends ParsedUrlQuery {
   id: string;
@@ -16,15 +17,15 @@ export default function Toolkit({
   };
 }) {
   return (
-    <div>
+    <Layout>
       <Head>
         <title>{toolkitData.title}</title>
       </Head>
-      <article>
+      <article className='prose lg:prose-xl'>
         <h1>{toolkitData.title}</h1>
         <div dangerouslySetInnerHTML={{ __html: toolkitData.contentHtml }} />
       </article>
-    </div>
+    </Layout>
   );
 }
 
