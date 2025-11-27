@@ -1,6 +1,2 @@
-# Changelog
-
-## [Unreleased]
-
-### Added
-- New API endpoint at `pages/api/solana-pay.ts` for generating Solana Pay URLs.
+## Added
+- Added DB helpers for webhook persistence (SQLite) at `lib/db/client.ts` and `lib/db/webhooks.ts`.
