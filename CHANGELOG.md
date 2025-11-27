@@ -1,7 +1,2 @@
-# Changelog
-
-## [Unreleased]
-
 ### Added
-- User-facing Solana Pay page at /pay/solana: generates QR code via API and performs on-chain verification polling (reference-based lookup + validateTransfer) for USDC payments.
-
+- Pages to render toolkit markdown content: includes a dynamic route `pages/toolkits/[id].tsx` and an index page `pages/toolkits/index.tsx`, with markdown parsing utilities in `lib/toolkits.ts`.
