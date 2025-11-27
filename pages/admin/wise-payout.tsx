@@ -1,119 +1,162 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
-export default function WisePayoutPage() {
-  const [token, setToken] = useState('');
-  const [amount, setAmount] = useState('');
-  const [currency, setCurrency] = useState('USD');
-  const [recipientId, setRecipientId] = useState('');
-  const [reference, setReference] = useState('');
+const WisePayoutAdmin = () => {
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("");
+  const [recipientId, setRecipientId] = useState("");
+  const [reference, setReference] = useState("");
+  const [message, setMessage] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<any | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setMessage(null);
     setError(null);
-    setResult(null);
 
     try {
-      const res = await fetch('/api/admin/wise-payout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          amount: parseFloat(amount),
-          currency,
-          recipientId,
-          reference,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to create payout');
+      const token = localStorage.getItem("adminBearerToken");
+      if (!token) {
+        setError("Admin token not found. Please login.");
+        setLoading(false);
+        return;
       }
 
-      setResult(data);
-    } catch (e: any) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
+      const response = await fetch("/api/admin/wise-payout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ amount, currency, recipientId, reference }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage("Payout successful.");
+        setAmount("");
+        setCurrency("");
+        setRecipientId("");
+        setReference("");
+      } else {
+        setError(data.error || "An error occurred.");
+      }
+    } catch (err) {
+      setError("An error occurred.");
     }
-  }
+
+    setLoading(false);
+  };
 
   return (
-    <div className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">Create Wise Payout</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Admin Token</label>
-          <input
-            type="password"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Amount</label>
+    <div className="admin-container">
+      <h1>Wise Payout</h1>
+      <form onSubmit={handleSubmit} className="admin-form">
+        <label>
+          Amount
           <input
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
             required
+            min="0"
+            step="0.01"
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Currency</label>
+        </label>
+        <label>
+          Currency
           <input
             type="text"
             value={currency}
             onChange={(e) => setCurrency(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
             required
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Recipient ID</label>
+        </label>
+        <label>
+          Recipient ID
           <input
             type="text"
             value={recipientId}
             onChange={(e) => setRecipientId(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
             required
           />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Reference</label>
+        </label>
+        <label>
+          Reference
           <input
             type="text"
             value={reference}
             onChange={(e) => setReference(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3"
-            required
           />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
-        >
-          {loading ? 'Processing...' : 'Create Payout'}
+        </label>
+        <button type="submit" disabled={loading}>
+          {loading ? "Processing..." : "Submit"}
         </button>
       </form>
-      {error && <p className="mt-4 text-red-500">{error}</p>}
-      {result && (
-        <div className="mt-4 p-4 bg-green-100 rounded-md">
-          <h3 className="text-lg font-medium text-green-800">Payout Created</h3>
-          <pre className="mt-2 text-sm text-green-700">{JSON.stringify(result, null, 2)}</pre>
-        </div>
-      )}
+      {message && <p className="success-message">{message}</p>}
+      {error && <p className="error-message">{error}</p>}
+      <style jsx>{`
+        .admin-container {
+          max-width: 600px;
+          margin: 2rem auto;
+          padding: 1rem;
+          background: #fff;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          font-family: Arial, sans-serif;
+        }
+        h1 {
+          text-align: center;
+          margin-bottom: 1.5rem;
+        }
+        .admin-form {
+          display: flex;
+          flex-direction: column;
+        }
+        label {
+          margin-bottom: 1rem;
+          font-weight: bold;
+        }
+        input {
+          width: 100%;
+          padding: 0.5rem;
+          margin-top: 0.25rem;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+          font-size: 1rem;
+        }
+        button {
+          padding: 0.75rem;
+          background-color: #0070f3;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          font-size: 1rem;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+        button:disabled {
+          background-color: #999;
+          cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+          background-color: #005bb5;
+        }
+        .success-message {
+          color: green;
+          margin-top: 1rem;
+          text-align: center;
+        }
+        .error-message {
+          color: red;
+          margin-top: 1rem;
+          text-align: center;
+        }
+      `}</style>
     </div>
   );
-}
+};
+
+export default WisePayoutAdmin;
