@@ -1,2 +1,7 @@
-### Changed
-- Enhanced the `/admin/testhooks` page with "Replay" and "Inspect" functionality. Added a new API endpoint (`/api/admin/testhooks/replay`) to re-process captured webhooks for easier QA and debugging.
+# Changelog
+
+## [Unreleased]
+
+### Added
+- User-facing Solana Pay page at /pay/solana: generates QR code via API and performs on-chain verification polling (reference-based lookup + validateTransfer) for USDC payments.
+
