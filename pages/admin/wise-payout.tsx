@@ -6,7 +6,6 @@ const WisePayoutPage = () => {
     currency: 'USD',
     recipientName: '',
     accountNumber: '',
-    // Add other necessary fields for different payout methods
   });
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,9 +16,24 @@ const WisePayoutPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validateForm = () => {
+    if (!formData.recipientName.trim()) return 'Recipient Name is required.';
+    if (!formData.accountNumber.trim()) return 'Account Number is required.';
+    if (!formData.amount || isNaN(parseFloat(formData.amount)) || parseFloat(formData.amount) <= 0) {
+      return 'A valid positive amount is required.';
+    }
+    return '';
+  };
+
   const handlePayout = async () => {
-    setLoading(true);
     setError('');
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setLoading(true);
     setStatus('Initiating payout...');
 
     try {
@@ -33,6 +47,13 @@ const WisePayoutPage = () => {
 
       if (response.ok) {
         setStatus(`Payout initiated successfully. Transfer ID: ${data.transferId}`);
+        // Clear form on success
+        setFormData({
+          amount: '',
+          currency: 'USD',
+          recipientName: '',
+          accountNumber: '',
+        });
       } else {
         throw new Error(data.error || 'Failed to initiate payout.');
       }
@@ -60,7 +81,8 @@ const WisePayoutPage = () => {
               id='recipientName'
               value={formData.recipientName}
               onChange={handleInputChange}
-              className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm'
+              className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100'
+              disabled={loading}
             />
           </div>
           <div>
@@ -73,7 +95,8 @@ const WisePayoutPage = () => {
               id='accountNumber'
               value={formData.accountNumber}
               onChange={handleInputChange}
-              className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm'
+              className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100'
+              disabled={loading}
             />
           </div>
           <div className='grid grid-cols-2 gap-4'>
@@ -87,7 +110,8 @@ const WisePayoutPage = () => {
                 id='amount'
                 value={formData.amount}
                 onChange={handleInputChange}
-                className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm'
+                className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100'
+                disabled={loading}
               />
             </div>
             <div>
@@ -99,7 +123,8 @@ const WisePayoutPage = () => {
                 id='currency'
                 value={formData.currency}
                 onChange={handleInputChange}
-                className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm'
+                className='mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm disabled:bg-gray-100'
+                disabled={loading}
               >
                 <option>USD</option>
                 <option>EUR</option>
@@ -115,7 +140,7 @@ const WisePayoutPage = () => {
             {loading ? 'Processing...' : 'Initiate Payout'}
           </button>
         </div>
-        {status && <p className='mt-4 text-sm text-center text-gray-600'>{status}</p>}
+        {status && !error && <p className='mt-4 text-sm text-center text-green-600'>{status}</p>}
         {error && <p className='mt-4 text-sm text-center text-red-600'>{error}</p>}
       </div>
     </div>
