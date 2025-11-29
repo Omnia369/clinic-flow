@@ -1,63 +1,142 @@
 # Clinic Flow
 
-Chiropractor-first automation toolkits and a lightweight landing app.
+A Next.js application for chiropractic clinic automation with gated preview system, payment processing, and admin tools.
 
-## Getting Started
+## Quick Start
 
-Prereqs:
-- Node.js 18+
-- npm or pnpm
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Copy `.env.example` to `.env.local` and configure your environment variables
+4. Run the development server: `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000)
 
-Install and run:
+## Environment Variables
+
+Create a `.env.local` file with:
 
 ```bash
-npm install
-npm run dev
+# Database
+DATABASE_URL="file:./clinic-flow.db"
+
+# Admin Access
+ADMIN_ACCESS_KEY="your-secret-key"
+
+# Payment Providers
+WISE_API_KEY="your-wise-api-key"
+WISE_SANDBOX="true"
+
+SOLANA_NETWORK="devnet"
+SOLANA_PAY_MERCHANT_WALLET="your-wallet-address"
+
+# Analytics (optional)
+GA4_MEASUREMENT_ID="G-XXXXXXXXXX"
+MIXPANEL_TOKEN="your-token"
+
+# Email (optional)
+RESEND_API_KEY="your-resend-key"
 ```
 
-Visit http://localhost:3000
+## Key Features
 
-## Environment
+### 🎯 Gated Preview System
+- One free preview per email address
+- Watermarked outputs until key redemption
+- Access key management for paid users
 
-Copy .env.example to .env and fill in values as needed.
+### 💳 Payment Processing
+- **Wise**: Admin payouts to recipients
+- **Solana Pay**: User-facing QR code payments
+- **Paddle Classic**: Webhook verification (live)
+- **PayPal**: Signature verification (scaffolded)
 
-Important:
-- Set `ADMIN_BEARER_TOKEN` to a secure random string to protect admin APIs.
-- Set `PREVIEW_SALT` to a secure random string for hashing emails.
-- Paddle: set `PADDLE_PUBLIC_KEY` to verify Classic webhooks.
-- PayPal: set `PAYPAL_ENV`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, and `PAYPAL_WEBHOOK_ID`.
-- Solana: set `SOLANA_RPC_URL`.
-- Wise: set `WISE_API_TOKEN` and `WISE_PROFILE_ID`.
+### 🛠️ Admin Tools
+- **Dashboard**: System metrics and health
+- **Webhook Inspector**: Test and replay payment webhooks
+- **Key Manager**: Generate and manage access keys
+- **Wise Payouts**: Initiate transfers to recipients
 
-## Notable Endpoints
-- GET /api/health — basic health check
-- POST /api/preview/command — stubbed preview generator
-- POST /api/webhooks/paddle — verifies Paddle Classic webhooks
-- POST /api/webhooks/paypal — verifies PayPal webhooks
-- POST /api/solana/verify — looks up Solana Pay transactions by reference
-- GET /api/admin/testhooks — returns captured webhook events
-- GET, POST /api/admin/keys — list and issue access keys (bearer auth)
-- PATCH /api/admin/keys/[key] — update key status (bearer auth)
+### 📚 Content System
+- 12 themed toolkit templates
+- Markdown-based content management
+- Static generation for performance
 
-## Admin surfaces
-- /admin — entry point
-- /admin/keys — UI to issue and revoke access keys. Requires `ADMIN_BEARER_TOKEN` to be entered in a prompt.
-- /admin/testhooks — QA surface to view captured webhook events.
+## API Endpoints
 
-Note: Captured events and keys are held in-memory/local sqlite for development and will reset.
+### Public
+- `GET /api/health` - Health check
+- `POST /api/preview/command` - Gated preview generation
+- `GET /api/solana-pay` - Generate payment QR
+- `GET /api/solana-pay/verify` - Verify payment
 
-## Libraries
-- lib/auth.ts — Key generation, email hashing, DB access for keys/previews.
-- lib/paddle.ts — Classic webhook signature verification.
-- lib/paypal.ts — Verify Webhook Signature API helper.
-- lib/wise.ts — Wise API helpers.
-- lib/solana.ts — Solana connection and reference-based lookup.
+### Admin (Bearer token required)
+- `GET /api/admin/stats` - System metrics
+- `GET /api/admin/testhooks/list` - List captured webhooks
+- `POST /api/admin/testhooks/replay` - Replay webhook
+- `POST /api/admin/testhooks/prune` - Clear all webhooks
+- `POST /api/admin/wise-payout` - Initiate Wise transfer
 
-## Roadmap (short-term)
-1. Gated preview (1 free per email) using the new key system.
-2. Wise and Solana modules (full verification and payouts).
-3. Toolkit content library and preview wiring.
-4. Analytics hooks (GA4 + Mixpanel via env).
+## Database Schema
+
+The application uses SQLite with the following tables:
+
+- `access_keys` - Generated access keys
+- `preview_usage` - Track free preview usage per email
+- `captured_webhooks` - Store incoming webhooks for testing
+- `payment_transactions` - Record payment attempts
+
+## Deployment
+
+### Vercel
+1. Connect your GitHub repository to Vercel
+2. Configure environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+### Security Headers
+The `vercel.json` file includes security headers:
+- X-Content-Type-Options: nosniff
+- X-Frame-Options: DENY
+- X-XSS-Protection: 1; mode=block
+
+## Development
+
+### Project Structure
+```
+pages/
+├── api/                 # API routes
+├── admin/              # Admin-only pages
+├── pay/                # Payment pages
+├── toolkits/           # Content pages
+└── index.tsx           # Landing page
+
+components/
+├── Layout.tsx          # Shared layout
+└── [other components]
+
+lib/
+├── db/                 # Database utilities
+├── admin_auth.ts       # Admin authentication
+└── [other utilities]
+
+content/
+└── toolkits/           # Markdown content files
+```
+
+### Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+## Monitoring
+
+- Health check: `/api/health`
+- Admin dashboard: `/admin/dashboard`
+- Webhook inspector: `/admin/testhooks`
+
+## Support
+
+For operational details, see [OPERATIONS.md](./OPERATIONS.md).
 
 ## License
-TBD.
+
+Private repository - All rights reserved.
