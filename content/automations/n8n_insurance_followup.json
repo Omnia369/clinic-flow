@@ -1,0 +1,197 @@
+{
+  "name": "Insurance Follow-up",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": [
+          {
+            "hour": 8,
+            "minute": 0
+          }
+        ]
+      },
+      "name": "Daily Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const date = new Date();\nconst targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 3);\nreturn [{ json: { targetDate: targetDate.toISOString().split('T')[0] } }];"
+      },
+      "name": "Calculate Target Date",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.example.com/appointments?date={{$json["targetDate"]}}",
+        "options": {},
+        "responseFormat": "json",
+        "jsonParameters": true
+      },
+      "name": "Fetch Appointments",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "items": "={{$json["appointments"]}}"
+      },
+      "name": "Loop Patients",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://insurance-clearinghouse.example.com/api/status",
+        "method": "POST",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={ \"patientId\": $json["id"] }",
+        "responseFormat": "json"
+      },
+      "name": "Check Insurance Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "if ($json.status === 'Active') {\n  return [{ json: { action: 'updateCRM', patientId: $json.patientId } }];\n} else if ($json.status === 'Inactive' || $json.status === 'Error') {\n  return [{ json: { action: 'createTaskAndNotify', patientId: $json.patientId } }];\n} else {\n  return [{ json: { action: 'none' } }];\n}"
+      },
+      "name": "Decide Action",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "resource": "record",
+        "operation": "update",
+        "entity": "Patient",
+        "id": "={{$json["patientId"]}}",
+        "updateFields": {
+          "status": "Verified"
+        }
+      },
+      "name": "Update CRM",
+      "type": "n8n-nodes-base.crm",
+      "typeVersion": 1,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "create",
+        "title": "Insurance Follow-up for Patient {{$json["patientId"]}}",
+        "assignee": "staff",
+        "dueDate": "={{new Date().toISOString().split('T')[0]}}"
+      },
+      "name": "Create Task",
+      "type": "n8n-nodes-base.task",
+      "typeVersion": 1,
+      "position": [1450, 400]
+    },
+    {
+      "parameters": {
+        "to": "={{$json["phone"]}}",
+        "message": "Please contact the office regarding your insurance status.",
+        "from": "Office",
+        "options": {}
+      },
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.sms",
+      "typeVersion": 1,
+      "position": [1650, 400]
+    }
+  ],
+  "connections": {
+    "Daily Trigger": {
+      "main": [
+        [
+          {
+            "node": "Calculate Target Date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Target Date": {
+      "main": [
+        [
+          {
+            "node": "Fetch Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Appointments": {
+      "main": [
+        [
+          {
+            "node": "Loop Patients",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Patients": {
+      "main": [
+        [
+          {
+            "node": "Check Insurance Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Insurance Status": {
+      "main": [
+        [
+          {
+            "node": "Decide Action",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decide Action": {
+      "main": [
+        [
+          {
+            "node": "Update CRM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Task",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Create Task": {
+      "main": [
+        [
+          {
+            "node": "Send SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true
+}
