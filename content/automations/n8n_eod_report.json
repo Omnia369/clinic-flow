@@ -1,0 +1,149 @@
+{
+  "name": "EOD Report",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": [
+          {
+            "hour": 18,
+            "minute": 0
+          }
+        ]
+      },
+      "name": "Daily Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM appointments WHERE DATE(appointment_date) = CURDATE()",
+        "database": "clinic_db"
+      },
+      "name": "Fetch Today's Appointments",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const appointments = items[0].json;\nconst total = appointments.length;\nconst completed = appointments.filter(a => a.status === 'Completed').length;\nconst noShow = appointments.filter(a => a.status === 'No-Show').length;\nconst newPatients = appointments.filter(a => a.isNewPatient === true).length;\nreturn [{ json: { total, completed, noShow, newPatients } }];"
+      },
+      "name": "Calculate Metrics",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "resource": "charge",
+        "filters": {
+          "created": {
+            "gte": "{{ $todayStart }}",
+            "lte": "{{ $todayEnd }}"
+          }
+        }
+      },
+      "name": "Fetch Daily Revenue",
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const metrics = items[0].json;\nconst revenue = items[1].json.reduce((sum, charge) => sum + charge.amount, 0) / 100;\nconst report = `# Daily EOD Report\n\n- Total Appointments: ${metrics.total}\n- Completed: ${metrics.completed}\n- No-Shows: ${metrics.noShow}\n- New Patients: ${metrics.newPatients}\n- Revenue: $${revenue.toFixed(2)}`;\nreturn [{ json: { report } }];"
+      },
+      "name": "Format Summary Report",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "your-email@gmail.com",
+        "toEmail": "recipient@example.com",
+        "subject": "Daily EOD Report",
+        "textContent": "={{ $json.report }}"
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [1250, 250]
+    },
+    {
+      "parameters": {
+        "channel": "#general",
+        "text": "={{ $json.report }}"
+      },
+      "name": "Send Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [1250, 350]
+    }
+  ],
+  "connections": {
+    "Daily Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Today's Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Today's Appointments": {
+      "main": [
+        [
+          {
+            "node": "Calculate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Metrics": {
+      "main": [
+        [
+          {
+            "node": "Format Summary Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Daily Revenue": {
+      "main": [
+        [
+          {
+            "node": "Format Summary Report",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Format Summary Report": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false
+}
