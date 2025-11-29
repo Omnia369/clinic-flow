@@ -1,0 +1,132 @@
+{
+  "name": "Appointment Reminder Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "hour": 9,
+              "minute": 0
+            }
+          ]
+        },
+        "mode": "everyDay"
+      },
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "calendarId": "primary",
+        "options": {},
+        "filters": {
+          "start": "={{ $today.toISOString().slice(0,10) }}T00:00:00Z",
+          "end": "={{ new Date($today.getTime() + 24*60*60*1000).toISOString().slice(0,10) }}T23:59:59Z"
+        }
+      },
+      "name": "Google Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "googleCalendarOAuth2Api": "Google Calendar Account"
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"status\"]}}",
+              "operation": "equal",
+              "value2": "confirmed"
+            }
+          ]
+        }
+      },
+      "name": "Filter Confirmed",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "fieldToSend": "phoneNumber",
+        "message": "Reminder: You have an appointment tomorrow. Please confirm here: https://example.com/confirm?id={{$json[\"id\"]}}"
+      },
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "twilioApi": "Twilio Account"
+      }
+    },
+    {
+      "parameters": {
+        "updateFields": {
+          "status": "Reminder Sent"
+        }
+      },
+      "name": "Update Record",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [1050, 300],
+      "credentials": {
+        "googleCalendarOAuth2Api": "Google Calendar Account"
+      }
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Google Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Calendar": {
+      "main": [
+        [
+          {
+            "node": "Filter Confirmed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Confirmed": {
+      "main": [
+        [
+          {
+            "node": "Send SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS": {
+      "main": [
+        [
+          {
+            "node": "Update Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "1"
+}
