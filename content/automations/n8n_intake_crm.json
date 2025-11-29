@@ -1,0 +1,102 @@
+{
+  "name": "Intake CRM Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "intake"
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "const schema = {\n  type: 'object',\n  properties: {\n    name: { type: 'string' },\n    email: { type: 'string', format: 'email' },\n    phone: { type: 'string' },\n  },\n  required: ['name', 'email'],\n  additionalProperties: false,\n};\n\nconst Ajv = require('ajv');\nconst ajv = new Ajv();\nconst validate = ajv.compile(schema);\n\nconst data = items[0].json;\nconst valid = validate(data);\n\nif (!valid) {\n  throw new Error('Validation failed: ' + JSON.stringify(validate.errors));\n}\n\nreturn items;" 
+      },
+      "name": "Validate Data",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "resource": "contact",
+        "upsertKey": "email",
+        "fields": {
+          "name": "={{$json[\"name\"]}}",
+          "email": "={{$json[\"email\"]}}",
+          "phone": "={{$json[\"phone\"]}}"
+        }
+      },
+      "name": "Airtable CRM",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "clinic@example.com",
+        "toEmail": "={{$json[\"email\"]}}",
+        "subject": "Intake Confirmation",
+        "text": "Dear {{$json[\"name\"]}},\n\nThank you for your submission. We have received your information and will be in touch shortly.\n\nBest regards,\nClinic Team"
+      },
+      "name": "Send Confirmation Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [850, 250]
+    },
+    {
+      "parameters": {
+        "channel": "#clinic-staff",
+        "text": "New intake submission from {{$json[\"name\"]}} ({{$json[\"email\"]}}). Please review."
+      },
+      "name": "Slack Notification",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [850, 350]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Data": {
+      "main": [
+        [
+          {
+            "node": "Airtable CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable CRM": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
