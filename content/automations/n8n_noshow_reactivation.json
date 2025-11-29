@@ -1,0 +1,152 @@
+{
+  "name": "No Show Reactivation",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": [
+          {
+            "hour": 10,
+            "minute": 0
+          }
+        ],
+        "mode": "everyDay"
+      },
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM appointments WHERE date = CURDATE() - INTERVAL 1 DAY AND status = 'No Show'",
+        "options": {}
+      },
+      "name": "Fetch No Show Appointments",
+      "type": "n8n-nodes-base.database",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "items": "={{$json[\"data\"]}}"
+      },
+      "name": "Split Appointments",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "fromNumber": "+1234567890",
+        "toNumber": "={{$json[\"customer_phone\"]}}",
+        "message": "Sorry we missed you. Please rebook your appointment here: https://rebook.example.com"
+      },
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "time": 2,
+        "unit": "days"
+      },
+      "name": "Wait 2 Days",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM appointments WHERE customer_id = {{$json[\\"customer_id\\"]}} AND date > CURDATE() - INTERVAL 1 DAY",
+        "options": {}
+      },
+      "name": "Check Rebooked",
+      "type": "n8n-nodes-base.database",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "your-email@example.com",
+        "toEmail": "={{$json[\"customer_email\"]}}",
+        "subject": "We Missed You - Please Rebook",
+        "text": "Dear customer, we noticed you missed your appointment. Please rebook at your convenience: https://rebook.example.com"
+      },
+      "name": "Send Follow-up Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Fetch No Show Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch No Show Appointments": {
+      "main": [
+        [
+          {
+            "node": "Split Appointments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Appointments": {
+      "main": [
+        [
+          {
+            "node": "Send SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 Days",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 Days": {
+      "main": [
+        [
+          {
+            "node": "Check Rebooked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Rebooked": {
+      "main": [
+        [
+          {
+            "node": "Send Follow-up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
