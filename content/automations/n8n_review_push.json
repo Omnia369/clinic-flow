@@ -1,0 +1,162 @@
+{
+  "name": "Appointment Review Request",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "appointment-completed"
+      },
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "appointmentCompletedWebhook"
+    },
+    {
+      "parameters": {
+        "time": 7200
+      },
+      "name": "Wait 2 Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "from": "{{ $credentials.twilio.accountSid }}",
+        "to": "={{ $json[\"phoneNumber\"] }}",
+        "message": "Please rate your appointment from 1 to 5. Reply with your rating."
+      },
+      "name": "Send SMS Rating Request",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "credentials": {
+        "twilioApi": "Twilio Account"
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sms-reply"
+      },
+      "name": "Wait for SMS Reply",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "webhookId": "smsReplyWebhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json[\"body\"] }}",
+              "operation": ">=",
+              "value2": 4
+            }
+          ]
+        }
+      },
+      "name": "Check Rating",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "from": "{{ $credentials.twilio.accountSid }}",
+        "to": "={{ $json[\"phoneNumber\"] }}",
+        "message": "Thank you for your positive feedback! Please leave us a Google Review: https://g.page/r/Cf7x1x1x1x1x1/review"
+      },
+      "name": "Send Google Review Link",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1250, 200],
+      "credentials": {
+        "twilioApi": "Twilio Account"
+      }
+    },
+    {
+      "parameters": {
+        "from": "{{ $credentials.twilio.accountSid }}",
+        "to": "={{ $json[\"phoneNumber\"] }}",
+        "message": "We're sorry to hear that. Please provide your feedback here: https://example.com/internal-feedback"
+      },
+      "name": "Send Internal Feedback Link",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1250, 400],
+      "credentials": {
+        "twilioApi": "Twilio Account"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 Hours": {
+      "main": [
+        [
+          {
+            "node": "Send SMS Rating Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS Rating Request": {
+      "main": [
+        [
+          {
+            "node": "Wait for SMS Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for SMS Reply": {
+      "main": [
+        [
+          {
+            "node": "Check Rating",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Rating": {
+      "main": [
+        [
+          {
+            "node": "Send Google Review Link",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Internal Feedback Link",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "id": "1"
+}
