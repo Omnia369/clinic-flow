@@ -1,12 +1,11 @@
 {
-  "name": "clinic-flow",
-  "version": "1.0.0",
   "dependencies": {
     "micro": "*",
     "php-serialize": "*",
     "@solana/web3.js": "*",
     "@solana/pay": "*",
-    "qrcode": "*"
+    "qrcode": "*",
+    "bignumber.js": "*"
   },
   "devDependencies": {
     "@types/qrcode": "*"
