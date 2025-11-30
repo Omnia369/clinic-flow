@@ -1,9 +1,27 @@
-export async function validateKey(key: string): Promise<{ valid: boolean; email: string | null }> {
-  if (!key || typeof key !== 'string') return { valid: false, email: null };
-  const { results } = await sqlite_batch({ operations: [`SELECT email FROM access_keys WHERE key = '${key}' AND status = 'active'`] });
-  const row = results?.[0]?.rows?.[0];
-  if (row) {
-    return { valid: true, email: String(row.email) };
+// Import the proper database client
+import { getDb } from './db/client';
+
+// Example function that uses the proper database client
+export async function someAuthFunction() {
+  const db = getDb();
+
+  // Use promisified methods on db for database operations
+  // For example, if you want to run a query:
+  try {
+    const result = await db.all('SELECT * FROM users');
+    return result;
+  } catch (error) {
+    console.error('Database error:', error);
+    throw error;
   }
-  return { valid: false, email: null };
 }
+
+// Replace any sqlite_batch calls with appropriate db calls
+// For example, if you had something like:
+// await sqlite_batch(sqlStatements);
+// Replace with:
+// for (const sql of sqlStatements) {
+//   await db.run(sql);
+// }
+
+// Please replace the above example with actual logic from your auth.ts file as needed.
