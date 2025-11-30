@@ -5,7 +5,8 @@
     "@solana/web3.js": "*",
     "@solana/pay": "*",
     "qrcode": "*",
-    "bignumber.js": "*"
+    "bignumber.js": "*",
+    "sqlite3": "*"
   },
   "devDependencies": {
     "@types/qrcode": "*"
