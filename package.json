@@ -2,18 +2,13 @@
   "name": "clinic-flow",
   "version": "1.0.0",
   "dependencies": {
-    "gray-matter": "^4.0.3",
-    "remark": "^14.0.2",
-    "remark-html": "^15.0.1",
-    "micro": "^9.3.4",
-    "php-serialize": "^3.0.0",
-    "@solana/web3.js": "^1.73.0",
-    "@solana/pay": "^0.7.0"
+    "micro": "*",
+    "php-serialize": "*",
+    "@solana/web3.js": "*",
+    "@solana/pay": "*",
+    "qrcode": "*"
   },
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+  "devDependencies": {
+    "@types/qrcode": "*"
   }
 }
