@@ -1,7 +1,25 @@
 {
   "name": "clinic-flow",
   "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
   "dependencies": {
-    "react-qr-code": "^2.0.6"
+    "next": "latest",
+    "react": "latest",
+    "micro": "latest",
+    "php-serialize": "latest",
+    "@solana/web3.js": "latest",
+    "@solana/pay": "latest",
+    "qrcode": "latest",
+    "react-qr-code": "latest",
+    "bignumber.js": "latest",
+    "sqlite3": "latest",
+    "gray-matter": "latest",
+    "remark": "latest",
+    "remark-html": "latest"
   }
 }
